@@ -58,6 +58,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="table-list">
                 <div class="row">
                     <div class="col-12">
@@ -81,7 +82,7 @@
                                            cellspacing="0" width="100%">
                                         <thead>
                                         <tr>
-                                            <?php if (($type == "approved" && in_array('approve.driver.delete', json_decode(@session('user_permissions'), true))) || ($type == "pending" && in_array('pending.driver.delete', json_decode(@session('user_permissions'), true))) || ($type == "all" && in_array('drivers.delete', json_decode(@session('user_permissions'), true)))) { ?>
+{{--                                            <?php if (($type == "approved" && in_array('approve.driver.delete', json_decode(@session('user_permissions'), true))) || ($type == "pending" && in_array('pending.driver.delete', json_decode(@session('user_permissions'), true))) || ($type == "all" && in_array('drivers.delete', json_decode(@session('user_permissions'), true)))) { ?>--}}
                                             <th class="delete-all">
                                                 <input type="checkbox" id="is_active">
                                                 <label class="col-3 control-label" for="is_active">
@@ -89,7 +90,7 @@
                                                             class="mdi mdi-delete"></i> {{trans('lang.all')}}</a>
                                                 </label>
                                             </th>
-                                            <?php } ?>
+{{--                                            <?php } ?>--}}
                                             <th>{{trans('lang.user_name')}}</th>
                                             <th>{{trans('lang.email')}}</th>
                                             <th>{{trans('lang.phone_number')}}</th>

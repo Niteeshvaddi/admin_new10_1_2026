@@ -638,22 +638,22 @@
                                                 </td>
                                                 <td>
                                                     <input type="checkbox" id="master-products-list" value="master-products"
-                                                           name="master_products[]" class="permission"
+                                                           name="master-products[]" class="permission"
                                                         {{ in_array('foods', $permissions) ? 'checked' : '' }}>
                                                     <label class="contol-label2"
                                                            for="master-products-list">{{ trans('lang.list') }}</label>
                                                     <input type="checkbox" id="master-products-create" value="master-products.create"
-                                                           name="master_products[[]" class="permission"
+                                                           name="master-products[]" class="permission"
                                                         {{ in_array('master-products.create', $permissions) ? 'checked' : '' }}>
                                                     <label class="contol-label2"
                                                            for="master-products-create">{{ trans('lang.create') }}</label>
                                                     <input type="checkbox" id="master-products-edit" value="master-products.edit"
-                                                           name="master_products[[]" class="permission"
+                                                           name="master-products[]" class="permission"
                                                         {{ in_array('master-products.edit', $permissions) ? 'checked' : '' }}>
                                                     <label class="contol-label2"
                                                            for="master-products-edit">{{ trans('lang.edit') }}</label>
                                                     <input type="checkbox" id="master-products-delete" value="master-products.delete"
-                                                           name="master_products[[]" class="permission"
+                                                           name="master-products[]" class="permission"
                                                         {{ in_array('master-products.delete', $permissions) ? 'checked' : '' }}>
                                                     <label class=" control-label2"
                                                            for="master-products-delete">{{ trans('lang.delete') }}</label>
@@ -1529,10 +1529,8 @@
                                         </table>
                                     </div>
                                 </div>
-                        </div>
                         </fieldset>
                     </div>
-            </div>
         </div>
         <div class="form-group col-12 text-center btm-btn">
             <button type="button" class="btn btn-primary edit-form-btn"><i class="fa fa-save"></i>

@@ -1,69 +1,5 @@
 @extends('layouts.app')
 @section('content')
-<style>
-.badge-danger {
-    background-color: #dc3545;
-    color: white;
-    font-size: 0.75em;
-    font-weight: bold;
-    padding: 0.25em 0.5em;
-    border-radius: 0.25rem;
-}
-.table-danger {
-    background-color: #f8d7da !important;
-}
-/* Publish toggle switch */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 34px;
-}
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    -webkit-transition: .4s;
-    transition: .4s;
-}
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    -webkit-transition: .4s;
-    transition: .4s;
-}
-input:checked + .slider {
-    background-color: #2196F3;
-}
-input:focus + .slider {
-    box-shadow: 0 0 1px #2196F3;
-}
-input:checked + .slider:before {
-    -webkit-transform: translateX(26px);
-    -ms-transform: translateX(26px);
-    transform: translateX(26px);
-}
-.slider.round {
-    border-radius: 34px;
-}
-.slider.round:before {
-    border-radius: 50%;
-}
-</style>
 <div class="page-wrapper">
     <div class="row page-titles">
         <div class="col-md-5 align-self-center">
@@ -90,6 +26,35 @@ input:checked + .slider:before {
                             <div class="select-box pl-3">
                             </div>
                         </div>
+                        <div class=" d-flex justify-content-between align-items-center border-0 flex-nowrap">
+                            <!-- RIGHT ACTIONS -->
+                            <div class="d-flex align-items-center flex-nowrap">
+                                <div class="select-box pl-3">
+                                    <select id="vtype_filter" class="form-control">
+                                        <option value="">Type</option>
+                                        <option value="restaurant">Restaurant</option>
+                                        <option value="mart">Mart</option>
+                                    </select>
+                                </div>
+
+                                <div class="select-box pl-3">
+                                    <select id="zone_filter" class="form-control">
+                                        <option value="">All Zones</option>
+                                    </select>
+                                </div>
+
+                                <div class="select-box pl-3">
+                                    <button type="button"
+                                            class="btn btn-sm btn-secondary"
+                                            id="clear_filters_btn"
+                                            style="display:none; white-space: nowrap;">
+                                        <i class="mdi mdi-close-circle mr-1"></i>Clear Filters
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -107,47 +72,47 @@ input:checked + .slider:before {
             </div>
         @endif
 
-        {{-- <div class="row mb-4">
-            <div class="col-12">
-                <div class="card border">
-                    <div class="card-header d-flex justify-content-between align-items-center border-0">
-                        <div class="card-header-title">
-                            <h3 class="text-dark-2 mb-2 h4">Bulk Import Promotions</h3>
-                            <p class="mb-0 text-dark-2">Upload Excel file to import multiple promotions at once</p>
-                        </div>
-                        <div class="card-header-right d-flex align-items-center">
-                            <div class="card-header-btn mr-3">
-                                <a href="{{ route('promotions.download-template') }}" class="btn btn-outline-primary rounded-full">
-                                    <i class="mdi mdi-download mr-2"></i>Download Template
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <form action="{{ route('promotions.import') }}" method="POST" enctype="multipart/form-data">
-                            @csrf
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <div class="form-group">
-                                        <label for="importFile" class="control-label">Select Excel File (.xls/.xlsx)</label>
-                                        <input type="file" name="file" id="importFile" accept=".xls,.xlsx" class="form-control" required>
-                                        <div class="form-text text-muted">
-                                            <i class="mdi mdi-information-outline mr-1"></i>
-                                            File should contain: restaurant_id, product_id, special_price, extra_km_charge, free_delivery_km, start_time, end_time, payment_mode
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-primary rounded-full">
-                                        <i class="mdi mdi-upload mr-2"></i>Import Promotions
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div> --}}
+{{--         <div class="row mb-4">--}}
+{{--            <div class="col-12">--}}
+{{--                <div class="card border">--}}
+{{--                    <div class="card-header d-flex justify-content-between align-items-center border-0">--}}
+{{--                        <div class="card-header-title">--}}
+{{--                            <h3 class="text-dark-2 mb-2 h4">Bulk Import Promotions</h3>--}}
+{{--                            <p class="mb-0 text-dark-2">Upload Excel file to import multiple promotions at once</p>--}}
+{{--                        </div>--}}
+{{--                        <div class="card-header-right d-flex align-items-center">--}}
+{{--                            <div class="card-header-btn mr-3">--}}
+{{--                                <a href="{{ route('promotions.download-template') }}" class="btn btn-outline-primary rounded-full">--}}
+{{--                                    <i class="mdi mdi-download mr-2"></i>Download Template--}}
+{{--                                </a>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
+{{--                    </div>--}}
+{{--                    <div class="card-body">--}}
+{{--                        <form action="{{ route('promotions.import') }}" method="POST" enctype="multipart/form-data">--}}
+{{--                            @csrf--}}
+{{--                            <div class="row">--}}
+{{--                                <div class="col-md-8">--}}
+{{--                                    <div class="form-group">--}}
+{{--                                        <label for="importFile" class="control-label">Select Excel File (.xls/.xlsx)</label>--}}
+{{--                                        <input type="file" name="file" id="importFile" accept=".xls,.xlsx" class="form-control" required>--}}
+{{--                                        <div class="form-text text-muted">--}}
+{{--                                            <i class="mdi mdi-information-outline mr-1"></i>--}}
+{{--                                            File should contain: restaurant_id, product_id, special_price, extra_km_charge, free_delivery_km, start_time, end_time, payment_mode--}}
+{{--                                        </div>--}}
+{{--                                    </div>--}}
+{{--                                </div>--}}
+{{--                                <div class="col-md-4 d-flex align-items-end">--}}
+{{--                                    <button type="submit" class="btn btn-primary rounded-full">--}}
+{{--                                        <i class="mdi mdi-upload mr-2"></i>Import Promotions--}}
+{{--                                    </button>--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                        </form>--}}
+{{--                    </div>--}}
+{{--                </div>--}}
+{{--            </div>--}}
+{{--        </div> --}}
 
         <div class="table-list">
             <div class="row">
@@ -163,23 +128,6 @@ input:checked + .slider:before {
                                     <a href="{{ route('promotions.create') }}" class="btn-primary btn rounded-full">
                                         <i class="mdi mdi-plus mr-2"></i>Add Promotion
                                     </a>
-                                </div>
-                                <div class="card-header-btn mr-3">
-                                    <select id="vtype_filter" class="form-control">
-                                        <option value="">All Types</option>
-                                        <option value="restaurant">Restaurant</option>
-                                        <option value="mart">Mart</option>
-                                    </select>
-                                </div>
-                                <div class="card-header-btn">
-                                    <select id="zone_filter" class="form-control">
-                                        <option value="">All Zones</option>
-                                    </select>
-                                </div>
-                                <div class="card-header-btn ml-2">
-                                    <button type="button" class="btn btn-sm btn-secondary" id="clear_filters_btn" style="display: none;">
-                                        <i class="mdi mdi-close-circle mr-1"></i>Clear Filters
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -302,8 +250,8 @@ function editUrl(id) {
 }
 
 function loadPromotions() {
-    console.log('📡 Loading promotions...', { 
-        vtype: selectedVTypeFilter, 
+    console.log('📡 Loading promotions...', {
+        vtype: selectedVTypeFilter,
         zone: selectedZoneFilter,
         route: '{{ route('promotions.data') }}'
     });
@@ -325,7 +273,7 @@ function loadPromotions() {
 
                 // Update count display
                 if (response.stats && response.stats.filtered !== undefined) {
-                    $('.promotion_count').text(response.stats.filtered + ' / ' + response.stats.total);
+                    $('.promotion_count').text(response.stats.total);
                     console.log('📊 Filtered:', response.stats.filtered, 'Total:', response.stats.total);
                 } else if (response.stats && response.stats.total) {
                     $('.promotion_count').text(response.stats.total);
@@ -366,7 +314,7 @@ function loadPromotions() {
                 console.error('❌ Error loading promotions:', response.error);
                 $('.promotion_count').text('0');
                 $('#promotion-table-body').html('<tr><td colspan="15" class="text-center">Error loading promotions: ' + (response.error || 'Unknown error') + '</td></tr>');
-                
+
                 if (typeof toastr !== 'undefined') {
                     toastr.error('Error loading promotions: ' + (response.error || 'Unknown error'));
                 } else {
@@ -382,17 +330,17 @@ function loadPromotions() {
                 responseText: xhr.responseText,
                 error: error
             });
-            
+
             $('.promotion_count').text('0');
             $('#promotion-table-body').html('<tr><td colspan="15" class="text-center text-danger">Error loading promotions. Please try again.</td></tr>');
-            
+
             var errorMsg = 'Error loading promotions';
             if (xhr.responseJSON && xhr.responseJSON.error) {
                 errorMsg += ': ' + xhr.responseJSON.error;
             } else if (xhr.statusText) {
                 errorMsg += ': ' + xhr.statusText;
             }
-            
+
             if (typeof toastr !== 'undefined') {
                 toastr.error(errorMsg);
             } else {
@@ -432,22 +380,20 @@ $(document).ready(function() {
                     $('#zone_filter').append('<option value="'+zone.id+'">'+zone.name+'</option>');
                 });
                 console.log('✅ Loaded ' + response.data.length + ' zones for filter');
-                
+
                 // Initialize Select2 after zones are loaded (if Select2 is available)
                 if (typeof $.fn.select2 !== 'undefined') {
                     $('#vtype_filter').select2({
-                        placeholder: "All Types",
+                        placeholder: "{{trans('lang.restaurant_type')}}",
                         minimumResultsForSearch: Infinity,
                         allowClear: true,
-                        width: '150px'
                     });
                     $('#zone_filter').select2({
-                        placeholder: "All Zones",
+                        placeholder: "{{trans('lang.select_zone')}}",
                         minimumResultsForSearch: Infinity,
                         allowClear: true,
-                        width: '150px'
                     });
-                    
+
                     // Handle Select2 clear event
                     $('#vtype_filter, #zone_filter').on('select2:unselecting', function(e) {
                         var self = $(this);
@@ -489,7 +435,7 @@ $(document).ready(function() {
         e.preventDefault();
         selectedVTypeFilter = '';
         selectedZoneFilter = '';
-        
+
         if (typeof $.fn.select2 !== 'undefined') {
             $('#vtype_filter').val(null).trigger('change');
             $('#zone_filter').val(null).trigger('change');
@@ -497,7 +443,7 @@ $(document).ready(function() {
             $('#vtype_filter').val('').trigger('change');
             $('#zone_filter').val('').trigger('change');
         }
-        
+
         updateClearFiltersButton();
         loadPromotions();
     });
@@ -693,7 +639,7 @@ $(document).ready(function() {
                 if (res.success) {
                     // Update checkbox state based on server response
                     checkbox.prop('checked', res.promo == 1 || res.promo === true);
-                    
+
                     if (typeof toastr !== 'undefined') {
                         toastr.success(res.message);
                     } else {

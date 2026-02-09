@@ -2549,3 +2549,86 @@
 #54 D:\\Niteesh\\workspace 23-12-25\\admin_new10_1_2026\\server.php(21): require_once('D:\\\\Niteesh\\\\work...')
 #55 {main}
 "} 
+[2026-02-09 07:48:42] local.INFO: === Mart Categories getData called ===  
+[2026-02-09 07:48:42] local.INFO: Request params: {"_token":"zcxWmOrG1m8mYX9SssN420LpEybIcNvZvcIe2xPO","start":"0","length":"30","search":{"value":null},"order":[{"column":"1","dir":"asc"}]} 
+[2026-02-09 07:48:42] local.INFO: Parsed - start: 0, length: 30, search:   
+[2026-02-09 07:48:42] local.INFO: Total records found: 16  
+[2026-02-09 07:48:42] local.INFO: Categories retrieved: 16  
+[2026-02-09 07:48:42] local.INFO: Returning 16 records  
+[2026-02-09 07:48:43] local.INFO: === Mart Categories getData called ===  
+[2026-02-09 07:48:43] local.INFO: Request params: {"_token":"zcxWmOrG1m8mYX9SssN420LpEybIcNvZvcIe2xPO","start":"0","length":"30","search":{"value":null},"order":[{"column":"1","dir":"asc"}]} 
+[2026-02-09 07:48:43] local.INFO: Parsed - start: 0, length: 30, search:   
+[2026-02-09 07:48:43] local.INFO: Total records found: 16  
+[2026-02-09 07:48:43] local.INFO: Categories retrieved: 16  
+[2026-02-09 07:48:43] local.INFO: Returning 16 records  
+[2026-02-09 07:48:50] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 07:48:50] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 07:48:53] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 07:48:53] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 07:48:53] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 07:48:53] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 07:48:55] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 07:48:55] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 07:49:06] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 07:49:06] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 07:49:07] local.INFO: ✅ Activity logged: Niteesh Vaddi deleted in foods  
+[2026-02-09 07:49:08] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 07:49:08] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 07:49:17] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 07:49:17] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 07:49:20] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 07:49:20] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 07:49:22] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 07:49:22] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:02:26] local.INFO: ✅ Activity logged: Niteesh Vaddi created in customers  
+[2026-02-09 09:05:58] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:05:58] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:09:23] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:09:23] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:09:25] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:09:25] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:09:28] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:09:28] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:09:34] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:09:34] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:09:42] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:09:42] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:09:49] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:09:49] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:10:14] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:10:14] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:10:17] local.INFO: File uploaded to Firebase Storage {"path":"master-products/product_1770628214_1770628214_3c55eacd.jfif","original_name":"red velvet.jfif","size":360356} 
+[2026-02-09 09:10:17] local.INFO: ✅ Activity logged: test created in master-products  
+[2026-02-09 09:10:22] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:10:22] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:10:27] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:10:27] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:10:29] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:10:29] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:10:37] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:10:37] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:10:55] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:10:55] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:10:55] local.INFO: ✅ Activity logged: test updated in master-products  
+[2026-02-09 09:10:57] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:10:57] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:10:59] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:10:59] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:11:06] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:11:06] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:11:35] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:11:35] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:11:38] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:11:38] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:11:40] local.INFO: Firebase Storage initialized using credentials.json file  
+[2026-02-09 09:11:40] local.INFO: Firebase Storage initialized successfully {"bucket":"jippymart-27c08.firebasestorage.app","project_id":"jippymart-27c08"} 
+[2026-02-09 09:11:57] local.INFO: 📅 Date formatting sample: {"raw_date":"2026-02-03T09:56:55.912396Z","formatted_date":"Feb 3, 2026 3:26 PM","format_used":"M j, Y g:i A"} 
+[2026-02-09 09:11:58] local.INFO: 📅 Date formatting sample: {"raw_date":"2026-02-03T09:56:55.912396Z","formatted_date":"Feb 3, 2026 3:26 PM","format_used":"M j, Y g:i A"} 
+[2026-02-09 09:12:06] local.INFO: 📅 Date formatting sample: {"raw_date":"2026-02-02T06:45:35.844428Z","formatted_date":"Feb 2, 2026 12:15 PM","format_used":"M j, Y g:i A"} 
+[2026-02-09 09:12:13] local.INFO: 📅 Date formatting sample: {"raw_date":"2026-01-07T12:27:07.936092Z","formatted_date":"Jan 7, 2026 5:57 PM","format_used":"M j, Y g:i A"} 
+[2026-02-09 09:12:15] local.INFO: 📅 Date formatting sample: {"raw_date":"2025-12-31T09:52:34.926814Z","formatted_date":"Dec 31, 2025 3:22 PM","format_used":"M j, Y g:i A"} 
+[2026-02-09 09:12:31] local.INFO: 📅 Date formatting sample: {"raw_date":"2026-02-03T09:56:55.912396Z","formatted_date":"Feb 3, 2026 3:26 PM","format_used":"M j, Y g:i A"} 
+[2026-02-09 09:12:34] local.INFO: 📅 Date formatting sample: {"raw_date":"2026-02-03T09:56:55.912396Z","formatted_date":"Feb 3, 2026 3:26 PM","format_used":"M j, Y g:i A"} 
+[2026-02-09 09:12:45] local.INFO: ✅ Order status updated: {"order_id":"Jippy33000598","old_status":"Order Placed","new_status":"Order Rejected"} 
+[2026-02-09 09:12:49] local.INFO: ✅ Activity logged: test status_updated in orders  
+[2026-02-09 09:13:56] local.INFO: 📅 Date formatting sample: {"raw_date":"2026-02-03T09:56:55.912396Z","formatted_date":"Feb 3, 2026 3:26 PM","format_used":"M j, Y g:i A"} 
