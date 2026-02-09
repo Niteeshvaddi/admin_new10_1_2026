@@ -567,6 +567,29 @@
                                                 </tr>
                                                 <tr>
                                                     <td>
+                                                        <strong>{{ trans('lang.food_master_plural') }}</strong>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" id="master-products-list" value="master-products"
+                                                               name="master-products[]" class="permission">
+                                                        <label class="contol-label2"
+                                                               for="master-products-list">{{ trans('lang.list') }}</label>
+                                                        <input type="checkbox" id="master-products-create" value="master-products.create"
+                                                               name="master-products[]" class="permission">
+                                                        <label class="contol-label2"
+                                                               for="master-products-create">{{ trans('lang.create') }}</label>
+                                                        <input type="checkbox" id="master-products-edit" value="master-products.edit"
+                                                               name="master-products[]" class="permission">
+                                                        <label class="contol-label2"
+                                                               for="master-products-edit">{{ trans('lang.edit') }}</label>
+                                                        <input type="checkbox" id="master-products-delete" value="master-products.delete"
+                                                               name="master-products[]" class="permission">
+                                                        <label class=" control-label2"
+                                                               for="master-products-delete">{{ trans('lang.delete') }}</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
                                                         <strong>{{ trans('lang.mart_item_plural') }}</strong>
                                                     </td>
                                                     <td>

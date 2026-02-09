@@ -164,7 +164,7 @@ input:checked + .slider:before {
                                         <i class="mdi mdi-plus mr-2"></i>Add Promotion
                                     </a>
                                 </div>
-                                <div class="card-header-btn mr-3">
+                                <div class="card-header-btn">
                                     <select id="vtype_filter" class="form-control">
                                         <option value="">All Types</option>
                                         <option value="restaurant">Restaurant</option>
@@ -302,8 +302,8 @@ function editUrl(id) {
 }
 
 function loadPromotions() {
-    console.log('📡 Loading promotions...', { 
-        vtype: selectedVTypeFilter, 
+    console.log('📡 Loading promotions...', {
+        vtype: selectedVTypeFilter,
         zone: selectedZoneFilter,
         route: '{{ route('promotions.data') }}'
     });
@@ -325,7 +325,7 @@ function loadPromotions() {
 
                 // Update count display
                 if (response.stats && response.stats.filtered !== undefined) {
-                    $('.promotion_count').text(response.stats.filtered + ' / ' + response.stats.total);
+                    $('.promotion_count').text(response.stats.total);
                     console.log('📊 Filtered:', response.stats.filtered, 'Total:', response.stats.total);
                 } else if (response.stats && response.stats.total) {
                     $('.promotion_count').text(response.stats.total);
@@ -366,7 +366,7 @@ function loadPromotions() {
                 console.error('❌ Error loading promotions:', response.error);
                 $('.promotion_count').text('0');
                 $('#promotion-table-body').html('<tr><td colspan="15" class="text-center">Error loading promotions: ' + (response.error || 'Unknown error') + '</td></tr>');
-                
+
                 if (typeof toastr !== 'undefined') {
                     toastr.error('Error loading promotions: ' + (response.error || 'Unknown error'));
                 } else {
@@ -382,17 +382,17 @@ function loadPromotions() {
                 responseText: xhr.responseText,
                 error: error
             });
-            
+
             $('.promotion_count').text('0');
             $('#promotion-table-body').html('<tr><td colspan="15" class="text-center text-danger">Error loading promotions. Please try again.</td></tr>');
-            
+
             var errorMsg = 'Error loading promotions';
             if (xhr.responseJSON && xhr.responseJSON.error) {
                 errorMsg += ': ' + xhr.responseJSON.error;
             } else if (xhr.statusText) {
                 errorMsg += ': ' + xhr.statusText;
             }
-            
+
             if (typeof toastr !== 'undefined') {
                 toastr.error(errorMsg);
             } else {
@@ -432,7 +432,7 @@ $(document).ready(function() {
                     $('#zone_filter').append('<option value="'+zone.id+'">'+zone.name+'</option>');
                 });
                 console.log('✅ Loaded ' + response.data.length + ' zones for filter');
-                
+
                 // Initialize Select2 after zones are loaded (if Select2 is available)
                 if (typeof $.fn.select2 !== 'undefined') {
                     $('#vtype_filter').select2({
@@ -447,7 +447,7 @@ $(document).ready(function() {
                         allowClear: true,
                         width: '150px'
                     });
-                    
+
                     // Handle Select2 clear event
                     $('#vtype_filter, #zone_filter').on('select2:unselecting', function(e) {
                         var self = $(this);
@@ -489,7 +489,7 @@ $(document).ready(function() {
         e.preventDefault();
         selectedVTypeFilter = '';
         selectedZoneFilter = '';
-        
+
         if (typeof $.fn.select2 !== 'undefined') {
             $('#vtype_filter').val(null).trigger('change');
             $('#zone_filter').val(null).trigger('change');
@@ -497,7 +497,7 @@ $(document).ready(function() {
             $('#vtype_filter').val('').trigger('change');
             $('#zone_filter').val('').trigger('change');
         }
-        
+
         updateClearFiltersButton();
         loadPromotions();
     });
@@ -693,7 +693,7 @@ $(document).ready(function() {
                 if (res.success) {
                     // Update checkbox state based on server response
                     checkbox.prop('checked', res.promo == 1 || res.promo === true);
-                    
+
                     if (typeof toastr !== 'undefined') {
                         toastr.success(res.message);
                     } else {
