@@ -42,8 +42,12 @@ class SettlementReportController extends Controller
         $weeks = $query->orderBy('week_start_date', 'desc')->get();
 
         $year = (int) request('year', now()->year);
-        $weeks2026 = $this->getWeeksForYear($year);
-
+//        $weeks2026 = $this->getWeeksForYear($year);
+        $weeks2026 = collect($this->getWeeksForYear($year))
+            ->filter(function ($week) {
+                return \Carbon\Carbon::parse($week['start_date'])->lte(now());
+            })
+            ->values();
 
         return view('reports.merchantSettlement', compact('weeks','weeks2026'));
     }
@@ -1334,7 +1338,8 @@ END
 
             // Set payment_date and verified_by if status is Settled
             if ($paymentStatus === 'settled') {
-                $settlementData['payment_date'] = now()->toDateString();
+                $settlementData['payment_date'] = $endDate->toDateString(); // store week end date
+
                 if (Auth::check()) {
                     $settlementData['verified_by'] = Auth::user()->name ?? Auth::user()->email ?? 'System';
                     $settlementData['verified_at'] = now();

@@ -86,6 +86,22 @@
                                     </select>
                                 </div>
                             </div>
+                            <div class="form-group row width-50">
+                                <label class="col-3 control-label">{{ trans('lang.zone') }}</label>
+                                <div class="col-7">
+                                    <div class="zone-selection-container" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                                        <div class="mb-2">
+                                            <button type="button" class="btn btn-sm btn-primary" id="select-all-zones">Select All</button>
+                                            <button type="button" class="btn btn-sm btn-secondary" id="deselect-all-zones">Deselect All</button>
+                                            <span class="ml-2 text-muted" id="zone-count">0 zones selected</span>
+                                        </div>
+                                        <div id="zone-checkbox-container">
+                                            <p class="text-muted">Loading zones...</p>
+                                        </div>
+                                    </div>
+                                    <div class="form-text text-muted">Select one or more zones for this subscription plan.</div>
+                                </div>
+                            </div>
                             <?php if ($id == '') { ?>
                                 <div class="form-group row width-50">
                                     <label class="col-3 control-label">{{trans('lang.coupon_restaurant_id')}}</label>
@@ -149,6 +165,45 @@
 <script src="{{ asset('js/bootstrap-datepicker.min.js') }}"></script>
 <link href="{{ asset('css/bootstrap-datepicker.min.css') }}" rel="stylesheet">
 <script>
+    var zoneIdToName = {};
+    var zonesLoaded = false;
+    var loadZonesPromise;
+
+        function loadZones() {
+            $.ajax({
+                url: '{{ route("zone.data") }}',
+                method: 'GET',
+                success: function (response) {
+
+                    $('#zone-checkbox-container').empty();
+
+                    if (response.data && response.data.length > 0) {
+                        response.data.forEach(function (zone) {
+
+                            var checkboxHtml = '<div class="form-check mb-2">' +
+                                '<input class="form-check-input zone-checkbox" type="checkbox" name="zone_ids[]" value="' + zone.id + '" id="zone_' + zone.id + '">' +
+                                '<label class="form-check-label" for="zone_' + zone.id + '">' + zone.name + '</label>' +
+                                '</div>';
+
+                            $('#zone-checkbox-container').append(checkboxHtml);
+                        });
+
+                    } else {
+                        $('#zone-checkbox-container').html('<p>No zones available</p>');
+                    }
+                }
+            });
+        }
+
+    function updateZoneCount() {
+        let count = $('.zone-checkbox:checked').length;
+        $('#zone-count').text(count + ' zones selected');
+    }
+
+    $(document).on('change', '.zone-checkbox', function () {
+        updateZoneCount();
+    });
+
     $(document).ready(function(){
         jQuery("#data-table_processing").hide();
         $('#datetimepicker1 .date_picker').datepicker({ dateFormat: 'mm/dd/yyyy', startDate: new Date() });
@@ -162,8 +217,24 @@
                 $('#vendor_restaurant_select').append($('<option></option>').attr('value', v.id).text(v.title));
             });
         }
-        renderVendors('');
+        // $('#vendor_restaurant_select').html('<option value="">Select zone first</option>');
+        // $('#vendor_restaurant_select').prop('disabled', true);
+        loadZones(); // ✅ load on page load
+
+        // renderVendors('');
         $('#coupon_type').on('change', function(){ renderVendors($(this).val()); });
+
+// ✅ Select All
+        $('#select-all-zones').click(function () {
+            $('.zone-checkbox').prop('checked', true);
+            updateZoneCount();
+        });
+
+// ✅ Deselect All
+        $('#deselect-all-zones').click(function () {
+            $('.zone-checkbox').prop('checked', false);
+            updateZoneCount();
+        });
 
         $(".save-form-btn").click(function(){
             $(".error_top").hide().html('');
@@ -177,7 +248,14 @@
             var selectedVendor = $('#vendor_restaurant_select').val();
             var dateValue = $(".date_picker").val();
 
-            console.log('💾 Creating coupon - Form values:', {
+            let selectedZones = [];
+
+            $('.zone-checkbox:checked').each(function () {
+                selectedZones.push($(this).val());
+            });
+
+
+                console.log('💾 Creating coupon - Form values:', {
                 code: code,
                 discount: discount,
                 couponType: couponType,
@@ -221,6 +299,8 @@
 
             var expiresAt = (newdate.getMonth()+1).toString().padStart(2,'0') + '/' + newdate.getDate().toString().padStart(2,'0') + '/' + newdate.getFullYear() + ' 11:59:59 PM';
 
+
+
             console.log('📅 Formatted expiry date:', expiresAt);
 
             jQuery("#data-table_processing").show();
@@ -235,6 +315,7 @@
             fd.append('expiresAt', expiresAt);
             fd.append('cType', couponType);
             fd.append('resturant_id', selectedVendor);
+            fd.append('zone', JSON.stringify(selectedZones));
             fd.append('isPublic', $(".coupon_public").is(":checked") ? 1 : 0);
             fd.append('isEnabled', $(".coupon_enabled").is(":checked") ? 1 : 0);
             var f = document.querySelector('input[type=file]')?.files?.[0];
@@ -267,6 +348,68 @@
                 $(".error_top").show().html('<p>Failed ('+xhr.status+'): '+(xhr.responseJSON?.message || xhr.statusText)+'</p>');
                 window.scrollTo(0,0);
             });
+        });
+    });
+    let couponType = $('#coupon_type').val(); // 👈 ADD
+
+    $(document).on('change', '.zone-checkbox', function () {
+
+        let selectedZones = [];
+
+        $('.zone-checkbox:checked').each(function () {
+            selectedZones.push($(this).val());
+        });
+
+        console.log('📍 Selected Zones:', selectedZones);
+
+        if (selectedZones.length === 0) {
+            $('#vendor_restaurant_select')
+                .html('<option value="">Select zone first</option>')
+                .prop('disabled', true);
+            return;
+        }
+
+        $('#vendor_restaurant_select')
+            .html('<option>Loading...</option>')
+            .prop('disabled', true);
+
+        $.ajax({
+            url: '{{ url("restaurants/by-zones") }}',
+            method: 'POST',
+            data: {
+                zones: selectedZones,
+                type: $('#coupon_type').val() // 👈 IMPORTANT
+
+            },
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            success: function (response) {
+
+                console.log('✅ Response:', response);
+
+                $('#vendor_restaurant_select')
+                    .empty()
+                    .append('<option value="">Select Restaurant</option>')
+                    .prop('disabled', false);
+
+                if (response.data && response.data.length > 0) {
+                    response.data.forEach(function (vendor) {
+                        $('#vendor_restaurant_select').append(
+                            `<option value="${vendor.id}">${vendor.title}</option>`
+                        );
+                    });
+                } else {
+                    $('#vendor_restaurant_select').append('<option>No restaurants found</option>');
+                }
+            },
+            error: function (xhr) {
+                console.error('❌ Error:', xhr.responseText);
+
+                $('#vendor_restaurant_select')
+                    .html('<option>Error loading</option>')
+                    .prop('disabled', false);
+            }
         });
     });
 </script>

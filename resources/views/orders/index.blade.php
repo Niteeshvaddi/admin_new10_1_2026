@@ -644,15 +644,30 @@
                             }
 
                             // Handle "all_orders" - don't send date filters
+                            {{--if (selectedRange === 'all_orders') {--}}
+                            {{--    console.log('📅 AJAX data - All orders selected, skipping date filter');--}}
+                            {{--    // Don't set date_from/date_to - this will show all orders--}}
+                            {{--} else if (daterangepicker && $('#daterange span').html() != '{{trans("lang.select_range")}}') {--}}
+                            {{--    // Always try to get date from daterangepicker if it has valid dates--}}
+                            {{--    try {--}}
+                            {{--        // Send full timestamp so last_24_hours / last_week works correctly--}}
+                            {{--        d.date_from = daterangepicker.startDate.format('YYYY-MM-DD HH:mm:ss');--}}
+                            {{--        d.date_to   = daterangepicker.endDate.format('YYYY-MM-DD HH:mm:ss');--}}
+                            {{--        console.log('📅 AJAX data - Sending dates:', d.date_from, 'to', d.date_to);--}}
+                            {{--    } catch (e) {--}}
+                            {{--        console.error('❌ Error getting daterangepicker values:', e);--}}
+                            {{--    }--}}
+                            {{--} else {--}}
+                            {{--    console.log('📅 AJAX data - No date range set');--}}
+                            {{--}--}}
                             if (selectedRange === 'all_orders') {
                                 console.log('📅 AJAX data - All orders selected, skipping date filter');
                                 // Don't set date_from/date_to - this will show all orders
                             } else if (daterangepicker && $('#daterange span').html() != '{{trans("lang.select_range")}}') {
-                                // Always try to get date from daterangepicker if it has valid dates
                                 try {
-                                    // Send full timestamp so last_24_hours / last_week works correctly
-                                    d.date_from = daterangepicker.startDate.format('YYYY-MM-DD HH:mm:ss');
-                                    d.date_to   = daterangepicker.endDate.format('YYYY-MM-DD HH:mm:ss');
+                                    // ✅ FIX: Use startOf('day') and endOf('day') to include full day
+                                    d.date_from = daterangepicker.startDate.startOf('day').format('YYYY-MM-DD HH:mm:ss');
+                                    d.date_to   = daterangepicker.endDate.endOf('day').format('YYYY-MM-DD HH:mm:ss');
                                     console.log('📅 AJAX data - Sending dates:', d.date_from, 'to', d.date_to);
                                 } catch (e) {
                                     console.error('❌ Error getting daterangepicker values:', e);

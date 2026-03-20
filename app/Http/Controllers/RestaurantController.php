@@ -4800,4 +4800,54 @@ class RestaurantController extends Controller
             default => abort(404),
         };
     }
+    public function getByZones(Request $request)
+    {
+        try {
+            $zones = $request->input('zones', []);
+            $type  = $request->input('type');
+
+
+            if (empty($zones)) {
+                return response()->json(['data' => []]);
+            }
+
+            $vendors = Vendor::where(function ($q) use ($zones) {
+                foreach ($zones as $zone) {
+                    $q->orWhereJsonContains('zoneId', $zone) // JSON array
+                    ->orWhere('zoneId', $zone);            // plain string
+                }
+            })
+                ->when($type, function ($q) use ($type) {
+                    $q->where('vType', $type); // 👈 FILTER HERE
+                })
+                ->get(['id', 'title', 'vType']);
+//            ->get(['id', 'title']);
+
+            return response()->json(['data' => $vendors]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function getZonesData(Request $request)
+    {
+        try {
+            $zones = Zone::select('id', 'name', 'latitude', 'longitude', 'area', 'publish')
+                ->orderBy('name', 'asc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $zones
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching zones: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching zones data'
+            ], 500);
+        }
+    }
 }

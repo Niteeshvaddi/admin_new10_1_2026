@@ -456,7 +456,7 @@
     var loadZonesPromise = new Promise(function(resolve){
         console.log('🔄 Loading zones from SQL for restaurants...');
         $.ajax({
-            url: '{{ route("zone.data") }}',
+            url: '{{ route("zone.data.fetch") }}',
             method: 'GET',
             success: function(response) {
                 console.log('📊 Zones API response:', response);

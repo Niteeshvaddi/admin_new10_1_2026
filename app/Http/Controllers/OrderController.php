@@ -42,7 +42,10 @@ class OrderController extends Controller
                 4 => 'ro.status',
             ];
             // Default to ro.id desc for reliable ordering
-            $orderBy = $orderable[$orderColumnIdx] ?? 'ro.createdAt';
+//            $orderBy = $orderable[$orderColumnIdx] ?? 'ro.createdAt';
+            $orderBy = isset($orderable[$orderColumnIdx])
+                ? $orderable[$orderColumnIdx]
+                : 'ro.createdAt';
 
             $filters = [
                 'vendor_id' => !empty($id) ? (string) $id : (string) $request->input('vendor_id', ''),
@@ -81,6 +84,12 @@ class OrderController extends Controller
             if ($request->input('date_range') == 'all_orders') {
                 $filters['date_from'] = 'all_orders';
                 $filters['date_to'] = 'all_orders';
+            }
+
+            if ($request->filled('date_from') && $request->filled('date_to')) {
+                // Override filters with custom range (these come from daterangepicker)
+                $filters['date_from'] = $request->input('date_from');
+                $filters['date_to'] = $request->input('date_to');
             }
 
             try {
@@ -1508,7 +1517,8 @@ class OrderController extends Controller
     {
         $last = Cache::remember('latest_order_id', 1, function () {
             return DB::table('restaurant_orders')
-            ->select('id')
+                ->where('status', 'Order Placed')
+                ->select('id')
             ->orderByRaw('CAST(SUBSTRING(id, 6) AS UNSIGNED) DESC') // from "Jippy30001018"
             ->first();
         });

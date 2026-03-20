@@ -129,6 +129,31 @@ class CouponController extends Controller
                                     : '<label class="switch"><input type="checkbox" '.($expired?'disabled ':'').'data-id="'.$r->id.'" class="toggle-enable"><span class="slider round"></span></label>';
             $desc = e($r->description ?: '');
             $usedCount = (int) ($r->used_count ?? 0);
+
+            $zoneText = '-';
+
+            if (!empty($r->zone)) {
+                $zoneIds = json_decode($r->zone, true);
+
+                // ✅ Fix double encoded issue
+                if (is_string($zoneIds)) {
+                    $zoneIds = json_decode($zoneIds, true);
+                }
+
+                if (is_array($zoneIds) && count($zoneIds) > 0) {
+                    $zoneNames = DB::table('zone')
+                        ->whereIn('id', $zoneIds)
+                        ->pluck('name')
+                        ->toArray();
+
+                    if (!empty($zoneNames)) {
+                        $zoneText = implode(', ', $zoneNames);
+                    }
+                }
+            }
+
+            $zoneColumn = e($zoneText);
+
             $actionsHtml = '<span class="action-btn"><a href="'.$editUrl.'"><i class="mdi mdi-lead-pencil" title="Edit"></i></a>';
             if ($canDelete) {
                 $actionsHtml .= ' <a href="javascript:void(0)" data-id="'.$r->id.'" class="delete-coupon"><i class="mdi mdi-delete" title="Delete"></i></a>';
@@ -136,9 +161,9 @@ class CouponController extends Controller
             $actionsHtml .= '</span>';
             if ($canDelete) {
                 $select = '<td class="delete-all"><input type="checkbox" class="is_open" dataId="'.$r->id.'"><label class="col-3 control-label"></label></td>';
-                $data[] = [ $select, $code, $discountText, $itemValue,  $privacy, $ctype, $restaurant, $expires, $toggle, $desc, $usedCount,$actionsHtml ];
+                $data[] = [ $select, $code, $discountText, $itemValue,  $privacy, $ctype, $restaurant, $expires, $toggle, $desc, $usedCount, $zoneColumn,$actionsHtml ];
             } else {
-                $data[] = [ $code, $discountText, $itemValue, $privacy, $ctype, $restaurant, $expires, $toggle, $desc, $usedCount, $actionsHtml ];
+                $data[] = [ $code, $discountText, $itemValue, $privacy, $ctype, $restaurant, $expires, $toggle, $desc, $usedCount, $zoneColumn, $actionsHtml ];
             }
         }
         return response()->json([
@@ -172,6 +197,7 @@ class CouponController extends Controller
             'cType'=>'required|string',
             'resturant_id'=>'required|string',
             'item_value'=>'nullable|integer|min:0',
+            'zone' => 'required',
             'usageLimit'=>'nullable|integer|min:0',
             'image'=>'nullable|image',
         ]);
@@ -203,6 +229,7 @@ class CouponController extends Controller
             'resturant_id'=>$request->input('resturant_id'),
             'cType'=>$request->input('cType'),
             'item_value'=>$request->input('item_value',0),
+            'zone' => $request->zone,
             'usageLimit'=>$request->input('usageLimit',0),
             'usedCount'=>0,
             'usedBy'=>'',
@@ -230,6 +257,7 @@ class CouponController extends Controller
             'cType'=>'required|string',
             'resturant_id'=>'required|string',
             'item_value'=>'nullable|integer|min:0',
+            'zone' => 'required',
             'usageLimit'=>'nullable|integer|min:0',
             'image'=>'nullable|image',
         ]);
@@ -250,6 +278,7 @@ class CouponController extends Controller
             'resturant_id'=>$request->input('resturant_id'),
             'cType'=>$request->input('cType'),
             'item_value'=>$request->input('item_value',0),
+            'zone' => $request->zone,
             'usageLimit'=>$request->input('usageLimit',0),
             'isPublic'=>$request->boolean('isPublic')?1:0,
             'isEnabled'=>$request->boolean('isEnabled')?1:0,

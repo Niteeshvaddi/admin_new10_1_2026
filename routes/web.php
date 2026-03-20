@@ -126,6 +126,8 @@ Route::middleware(['permission:foods,foods'])->group(function () {
     Route::get('/foods/json/{id}', [App\Http\Controllers\FoodController::class, 'showJson'])->name('foods.json');
 });
 Route::get('/foods/export', [App\Http\Controllers\FoodController::class, 'export']);
+Route::post('/foods/{id}/apply-discount', [App\Http\Controllers\FoodController::class, 'applyDiscount'])->name('foods.applyDiscount');
+Route::post('/foods/{Id}/reset-discount', [App\Http\Controllers\FoodController::class, 'resetDiscount'])->name('foods.resetDiscount');
 
 Route::middleware(['permission:foods,foods'])->group(function () {
     Route::get('/foods/{id}', [App\Http\Controllers\FoodController::class, 'index'])->name('restaurants.foods');
@@ -1468,9 +1470,12 @@ Route::middleware(['permission:restaurants,restaurants'])->group(function () {
     Route::get('/api/users/{id}/subscription-history', [App\Http\Controllers\UserController::class, 'getSubscriptionHistory'])->name('users.api.subscription-history');
     Route::get('/api/email-templates/{type}', [App\Http\Controllers\RestaurantController::class, 'getEmailTemplate'])->name('email-templates.get');
 });
+Route::post('restaurants/by-zones', [App\Http\Controllers\RestaurantController::class, 'getByZones']);
 Route::get('/api/zone/{id}', [App\Http\Controllers\ZoneController::class, 'getZoneById'])->name('zone.api.getById');
 Route::get('/api/users/{id}', [App\Http\Controllers\UserController::class, 'getUserById'])->name('users.api.getById');
 Route::get('/api/users/{id}/wallet-balance', [App\Http\Controllers\UserController::class, 'getWalletBalance'])->name('users.api.wallet-balance');
+Route::get('/zone/data/zone', [App\Http\Controllers\RestaurantController::class, 'getZonesData'])->name('zone.data.fetch');
+
 
 // Restaurant routes
 Route::middleware(['permission:restaurants,restaurants'])->group(function () {
