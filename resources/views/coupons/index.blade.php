@@ -107,6 +107,7 @@
                                     <th>{{trans('lang.coupon_enabled')}}</th>
                                     <th>{{trans('lang.coupon_description')}}</th>
                                     <th>Used Count</th>
+                                    <th>Zone</th>
                                     <th>{{trans('lang.actions')}}</th>
                                 </tr>
                                 </thead>

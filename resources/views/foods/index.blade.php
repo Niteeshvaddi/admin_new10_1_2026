@@ -160,31 +160,61 @@
                                     <p class="mb-0 text-dark-2">{{trans('lang.food_table_text')}}</p>
                                 </div>
                                 <div class="card-header-right d-flex align-items-center">
-                                    <div class="dropdown mr-3">
-                                        <button class="btn btn-outline-secondary dropdown-toggle rounded-full" type="button"
-                                                id="columnToggleMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            Columns
-                                        </button>
-
-                                        <div class="dropdown-menu p-3" aria-labelledby="columnToggleMenu" style="max-height:300px;overflow:auto; min-width: 320px; width: 320px;">
-                                            <div id="dynamicColumnToggleArea"></div>
-
-                                            <button id="showAllColumns" class="btn btn-light btn-sm mt-2 w-100">
-                                                Show All
-                                            </button>
-                                        </div>
-                                    </div>
                                     <div class="card-header-btn mr-3">
                                         <?php if (!empty($restaurantId)) { ?>
-                                        <button type="button" id="recalculate-prices-btn" class="btn btn-primary rounded-full mr-2" title="Recalculate all product prices based on current subscription status">
-                                            <i class="fa fa-calculator mr-1"></i> Recalculate Prices
-                                        </button>
-                                        <a class="btn-primary btn rounded-full"
-                                           href="{!! route('foods.create') !!}/{{$restaurantId}}"><i
-                                                class="mdi mdi-plus mr-2"></i>{{trans('lang.food_create')}}</a>
+
+                                            <!-- FLEX WRAPPER -->
+                                        <div class="d-flex align-items-end" style="gap: 20px; flex-wrap: wrap;">
+
+                                            <!-- LEFT: DISCOUNT FORM -->
+                                            <div style="min-width: 300px;">
+                                                <h5>Apply Discount</h5>
+                                                <form action="{{ route('foods.applyDiscount', $restaurantId) }}" method="POST">
+                                                    @csrf
+
+                                                    <input type="number" name="discount" class="form-control mb-2" placeholder="Discount %" required>
+
+                                                    <button class="btn btn-primary btn-sm">Apply</button>
+                                                </form>
+                                            </div>
+
+                                            <!-- RIGHT: BUTTONS -->
+                                            <div class="d-flex align-items-center">
+
+                                                <form action="{{ route('foods.resetDiscount', $restaurantId) }}" method="POST" class="mt-1">
+                                                    @csrf
+                                                    <button class="btn btn-outline-danger btn-sm rounded-full mr-1">Reset Price</button>
+                                                </form>
+
+                                                    <button class="btn btn-outline-secondary dropdown-toggle rounded-full mr-1" type="button"
+                                                            id="columnToggleMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                        Columns
+                                                    </button>
+
+                                                    <div class="dropdown-menu p-3" aria-labelledby="columnToggleMenu" style="max-height:300px;overflow:auto; min-width: 320px; width: 320px;">
+                                                        <div id="dynamicColumnToggleArea"></div>
+
+                                                        <button id="showAllColumns" class="btn btn-light btn-sm mt-2 w-100">
+                                                            Show All
+                                                        </button>
+                                                    </div>
+                                                <button type="button" id="recalculate-prices-btn"
+                                                        class="btn btn-primary rounded-full mr-2">
+                                                    <i class="fa fa-calculator mr-1"></i> Recalculate Prices
+                                                </button>
+
+                                                <a class="btn-primary btn rounded-full"
+                                                   href="{!! route('foods.create') !!}/{{$restaurantId}}">
+                                                    <i class="mdi mdi-plus mr-2"></i>{{trans('lang.food_create')}}
+                                                </a>
+                                            </div>
+
+                                        </div>
+
                                         <?php } else { ?>
-                                        <a class="btn-primary btn rounded-full" href="{!! route('foods.create') !!}"><i
-                                                class="mdi mdi-plus mr-2"></i>{{trans('lang.food_create')}}</a>
+                                        <a class="btn-primary btn rounded-full" href="{!! route('foods.create') !!}">
+                                            <i class="mdi mdi-plus mr-2"></i>{{trans('lang.food_create')}}
+                                        </a>
                                         <?php } ?>
                                     </div>
                                 </div>

@@ -22,12 +22,16 @@ class Coupon extends Model
         'image',
         'resturant_id',
         'cType',
+        'zone',
         'item_value',
         'usageLimit',
         'usedCount',
         'usedBy',
         'isPublic',
         'isEnabled',
+    ];
+    protected $casts = [
+        'zone' => 'array',
     ];
 }
 

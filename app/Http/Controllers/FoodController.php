@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AppUser;
 use App\Models\Vendor;
+use App\Models\vendor_products;
 use App\Models\VendorProduct;
 use App\Services\ActivityLogger;
 use App\Services\FirebaseStorageService;
@@ -32,6 +33,7 @@ class FoodController extends Controller
             'restaurantId' => $restaurantId,
         ]);
     }
+
 
     public function create($restaurantId = '')
     {
@@ -306,6 +308,7 @@ class FoodController extends Controller
             'id' => $id,
             'name' => $data['name'],
             'price' => $data['price'],
+            'original_price' => $data['price'], // 🔥 important
             'merchant_price' => $data['merchant_price'],
             'disPrice' => $data['disPrice'],
             'description' => $data['description'],
@@ -375,6 +378,7 @@ class FoodController extends Controller
         $food->fill([
             'name' => $data['name'],
             'price' => $data['price'],
+            'original_price' => $data['price'], // 🔥 important
             'merchant_price' => $data['merchant_price'],
             'disPrice' => $data['disPrice'],
             'description' => $data['description'],
@@ -569,6 +573,8 @@ class FoodController extends Controller
             // 1️⃣ Regular Price
             if ($field === 'price') {
                 $food->price = $value;
+
+                $food->original_price = $value;
 
                 // Reset discount if greater than price
                 if ($food->disPrice && $food->disPrice > $value) {
@@ -1198,29 +1204,56 @@ class FoodController extends Controller
             $applyGst = !$vendor->gst;
 
             // ---------- UPDATE PRICES ----------
+//            $updated = DB::table('vendor_products')
+//                ->where('vendorID', $vendor->id)
+//                ->update([
+//                    'price' => DB::raw("
+//                    CASE
+//                        WHEN MOD(
+//                            merchant_price
+//                            + " . ($applyGst ? "(merchant_price * $gstPercent / 100)" : "0") . "
+//                            + (merchant_price * $commission / 100),
+//                            1
+//                        ) = 0.5
+//                        THEN FLOOR(
+//                            merchant_price
+//                            + " . ($applyGst ? "(merchant_price * $gstPercent / 100)" : "0") . "
+//                            + (merchant_price * $commission / 100)
+//                        )
+//                        ELSE ROUND(
+//                            merchant_price
+//                            + " . ($applyGst ? "(merchant_price * $gstPercent / 100)" : "0") . "
+//                            + (merchant_price * $commission / 100)
+//                        )
+//                    END
+//                ")
+//                ]);
+            $formula = "
+    CASE
+        WHEN MOD(
+            merchant_price
+            + " . ($applyGst ? "(merchant_price * $gstPercent / 100)" : "0") . "
+            + (merchant_price * $commission / 100),
+            1
+        ) = 0.5
+        THEN FLOOR(
+            merchant_price
+            + " . ($applyGst ? "(merchant_price * $gstPercent / 100)" : "0") . "
+            + (merchant_price * $commission / 100)
+        )
+        ELSE ROUND(
+            merchant_price
+            + " . ($applyGst ? "(merchant_price * $gstPercent / 100)" : "0") . "
+            + (merchant_price * $commission / 100)
+        )
+    END
+";
+
             $updated = DB::table('vendor_products')
                 ->where('vendorID', $vendor->id)
                 ->update([
-                    'price' => DB::raw("
-                    CASE
-                        WHEN MOD(
-                            merchant_price
-                            + " . ($applyGst ? "(merchant_price * $gstPercent / 100)" : "0") . "
-                            + (merchant_price * $commission / 100),
-                            1
-                        ) = 0.5
-                        THEN FLOOR(
-                            merchant_price
-                            + " . ($applyGst ? "(merchant_price * $gstPercent / 100)" : "0") . "
-                            + (merchant_price * $commission / 100)
-                        )
-                        ELSE ROUND(
-                            merchant_price
-                            + " . ($applyGst ? "(merchant_price * $gstPercent / 100)" : "0") . "
-                            + (merchant_price * $commission / 100)
-                        )
-                    END
-                ")
+                    'price' => DB::raw($formula),
+                    'original_price' => DB::raw($formula), // ✅ reuse
                 ]);
 
             return $updated; // ✅ number of products updated
@@ -1232,5 +1265,77 @@ class FoodController extends Controller
             ]);
             return 0;
         }
+    }
+//    public function applyDiscount(Request $request, $restaurantId)
+//    {
+//        $request->validate([
+//            'discount' => 'required|numeric|max:100',
+//        ]);
+//
+//        $discount = $request->discount;
+//
+//        $foods = VendorProduct::where('vendorID', $restaurantId)->get();
+//
+//        foreach ($foods as $food) {
+//
+//            $price = $food->price;
+//
+//            // calculate discount
+//            $discountAmount = ($price * $discount) / 100;
+//            $newPrice = $price + $discountAmount;
+//
+//            // update PRICE directly
+//            $food->update([
+//                'price' => round($newPrice, 2)
+//            ]);
+//        }
+//
+//        return back()->with('success', 'Discount applied directly to price!');
+//    }
+    public function applyDiscount(Request $request, $restaurantId)
+    {
+        $request->validate([
+            'discount' => 'required|numeric|max:100',
+        ]);
+
+        $discount = $request->discount;
+
+        $foods = VendorProduct::where('vendorID', $restaurantId)->get();
+
+        foreach ($foods as $food) {
+
+            // ✅ use original price always
+            $basePrice = $food->original_price ?? $food->price;
+
+            // save original if empty
+            if (!$food->original_price) {
+                $food->original_price = $food->price;
+            }
+
+            // calculate
+            $discountAmount = ($basePrice * $discount) / 100;
+            $newPrice = $basePrice + $discountAmount;
+
+            $food->update([
+                'price' => round($newPrice, 2),
+                'original_price' => $basePrice
+            ]);
+        }
+
+        return back()->with('success', 'Discount applied successfully!');
+    }
+    public function resetDiscount($restaurantId)
+    {
+        $foods = VendorProduct::where('vendorID', $restaurantId)->get();
+
+        foreach ($foods as $food) {
+            if ($food->original_price) {
+                $food->update([
+                    'price' => $food->original_price
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Discount removed and original price restored!');
     }
 }

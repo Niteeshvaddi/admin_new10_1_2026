@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 class restaurant_orders extends Model
 {
@@ -64,7 +65,8 @@ class restaurant_orders extends Model
                 'u_driver.lastName as driver_last_name',
                 'u_driver.phoneNumber as driver_phone',
                 'u_driver.email as driver_email'
-            );
+            )
+        ->where('ro.status', '!=', 'Pending');
 
         // ✅ Filters
         if ($vendorId !== '') $query->where('ro.vendorID', $vendorId);
@@ -73,9 +75,10 @@ class restaurant_orders extends Model
         if ($status !== '' && strtolower($status) !== 'all') $query->where('ro.status', $status);
         if ($zoneId !== '') $query->where('v.zoneId', $zoneId);
 
-        // ✅ Payment Type Filter
         if ($paymentType !== '') {
-            $query->whereRaw('LOWER(ro.payment_method) = ?', [$paymentType]);
+            if (Schema::hasColumn('restaurant_orders', 'payment_method')) {
+                $query->whereRaw('LOWER(ro.payment_method) = ?', [$paymentType]);
+            }
         }
 
         // ✅ Order Type
@@ -94,12 +97,21 @@ class restaurant_orders extends Model
         } elseif ($dateFrom !== '' && $dateTo !== '') {
             // Date range provided - apply filter
             try {
-                // Parse the dates - they come as "YYYY-MM-DD HH:mm:ss" from controller
-                $from = Carbon::parse($dateFrom);
-                $to = Carbon::parse($dateTo);
+                // Bounds come from the browser as "Y-m-d H:i:s" in the user's local (business) timezone.
+                // createdAt is a VARCHAR of ISO-8601 (e.g. 2026-01-07T12:00:00.000000Z). Comparing ISO strings
+                // to "Y-m-d H:i:s" breaks lexicographically ('T' sorts after space), which drops the entire end day.
+                $tz = 'Asia/Kolkata';
+                $fromUtc = Carbon::parse(trim($dateFrom), $tz)->utc();
+                $toUtc = Carbon::parse(trim($dateTo), $tz)->utc();
 
-                // Use whereBetween with exact timestamps (controller already sets correct boundaries)
-                $query->whereBetween('ro.createdAt', [$from, $to]);
+                $fromSql = $fromUtc->format('Y-m-d H:i:s');
+                $toSql = $toUtc->format('Y-m-d H:i:s');
+
+                // Strip trailing Z / fractional seconds; normalize to naive UTC wall clock for comparison
+                $createdAtTs = "STR_TO_DATE(REPLACE(SUBSTRING_INDEX(SUBSTRING_INDEX(TRIM(ro.createdAt), 'Z', 1), '.', 1), 'T', ' '), '%Y-%m-%d %H:%i:%s')";
+
+                $query->whereRaw("{$createdAtTs} >= STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s')", [$fromSql]);
+                $query->whereRaw("{$createdAtTs} <= STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s')", [$toSql]);
             } catch (\Throwable $e) {
                 \Log::error('❌ Date parsing failed', [
                     'date_from' => $dateFrom,
