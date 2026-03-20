@@ -292,17 +292,32 @@
             }
 
             let couponZones = [];
+            var rawZone = (c.zoneRaw !== undefined && c.zoneRaw !== null && String(c.zoneRaw).trim() !== '') ? c.zoneRaw : c.zone;
 
-            if (c.zone) {
+            if (rawZone) {
                 try {
-                    if (c.zone === 'all') {
+                    // Normalize: stored value can be `ALL`, `"ALL"`, or `'ALL'`
+                    if (typeof rawZone === 'string') {
+                        rawZone = rawZone.trim();
+                        if ((rawZone.startsWith('"') && rawZone.endsWith('"')) || (rawZone.startsWith("'") && rawZone.endsWith("'"))) {
+                            rawZone = rawZone.slice(1, -1);
+                        }
+                    }
+
+                    if (Array.isArray(rawZone)) {
+                        couponZones = rawZone.map(String);
+                    } else if (typeof rawZone === 'string' && rawZone.trim().toLowerCase() === 'all') {
                         couponZones = 'all';
                     } else {
-                        couponZones = JSON.parse(c.zone);
+                        couponZones = JSON.parse(rawZone);
 
                         if (typeof couponZones === "string") {
                             couponZones = JSON.parse(couponZones);
                         }
+                    }
+
+                    if (Array.isArray(couponZones)) {
+                        couponZones = couponZones.map(String);
                     }
 
                     console.log('📦 Coupon Zones:', couponZones);
@@ -316,7 +331,7 @@
                     $('#zone_all').prop('checked', true);
                     $('.zone-checkbox').prop('checked', true);
                     updateZoneCount();
-                    loadRestaurantsByZones(allZoneIds, c.resturant_id);
+                    renderVendors(c.cType || '', c.resturant_id);
                     return;
                 }
 
@@ -343,6 +358,11 @@
         $('#coupon_type').on('change', function(){
             var type = $(this).val();
             var sel = $('.zone-checkbox:checked').map(function(){ return $(this).val(); }).get();
+            if ($('#zone_all').is(':checked') || (allZoneIds.length > 0 && sel.length === allZoneIds.length)) {
+                renderVendors(type, $('#vendor_restaurant_select').val());
+                return;
+            }
+
             if (sel.length > 0) {
                 loadRestaurantsByZones(sel, $('#vendor_restaurant_select').val());
             } else {
@@ -356,7 +376,7 @@
             updateZoneCount();
             var sel = $('.zone-checkbox:checked').map(function(){ return $(this).val(); }).get();
             if (sel.length > 0) {
-                loadRestaurantsByZones(sel, $('#vendor_restaurant_select').val());
+                renderVendors($('#coupon_type').val(), $('#vendor_restaurant_select').val());
             }
         });
 
@@ -381,6 +401,13 @@
                     .prop('disabled', true);
                 return;
             }
+
+            // If all zones are selected, show all vendors for the selected coupon type.
+            if ($('#zone_all').is(':checked') && allZoneIds.length > 0) {
+                renderVendors($('#coupon_type').val(), $('#vendor_restaurant_select').val());
+                return;
+            }
+
             loadRestaurantsByZones(selectedZones, $('#vendor_restaurant_select').val());
         });
 
@@ -393,7 +420,7 @@
                 loadRestaurantsByZones([], null);
                 return;
             }
-            loadRestaurantsByZones(allZoneIds, $('#vendor_restaurant_select').val());
+            renderVendors($('#coupon_type').val(), $('#vendor_restaurant_select').val());
         });
 
         $(".edit-form-btn").click(function(){
@@ -544,10 +571,14 @@
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             success: function (response) {
+                var currentType = $('#coupon_type').val();
+                var allLabel = currentType ? ('All ' + currentType + 's') : 'All';
+                var allSelected = (selectedVendor && String(selectedVendor).toUpperCase() === 'ALL') ? 'selected' : '';
 
                 $('#vendor_restaurant_select')
                     .empty()
                     .append('<option value="">Select Restaurant</option>')
+                    .append('<option value="ALL" ' + allSelected + '>' + allLabel + '</option>')
                     .prop('disabled', false);
 
                 if (response.data && response.data.length > 0) {
