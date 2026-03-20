@@ -12,6 +12,50 @@ use App\Models\Currency;
 
 class CouponController extends Controller
 {
+    /**
+     * Normalize `zone` input before saving.
+     * - If input is the string "ALL"/"all" -> store "ALL"
+     * - If input is a JSON string like ["id1","id2"] -> decode to PHP array (avoid double-encoding)
+     * - If input is already an array -> use as-is
+     */
+    private function normalizeZoneForStorage($value)
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if ($value === null) {
+            return null;
+        }
+
+        $str = trim((string) $value);
+        if ($str === '') {
+            return $str;
+        }
+
+        // Remove surrounding quotes if someone sends '"[...]"' or '"ALL"'
+        if (
+            (str_starts_with($str, '"') && str_ends_with($str, '"')) ||
+            (str_starts_with($str, "'") && str_ends_with($str, "'"))
+        ) {
+            $str = substr($str, 1, -1);
+            $str = trim($str);
+        }
+
+        if (strtolower($str) === 'all') {
+            return 'ALL';
+        }
+
+        // Decode JSON array strings to PHP array to prevent double-encoding.
+        if (str_starts_with($str, '[')) {
+            $decoded = json_decode($str, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        return $value;
+    }
 
     public function __construct()
     {
@@ -133,21 +177,30 @@ class CouponController extends Controller
             $zoneText = '-';
 
             if (!empty($r->zone)) {
-                $zoneIds = json_decode($r->zone, true);
+                // Special case: when user selected "All zones", we store literal value "all"
+                // (not a JSON array). Show "All" in the UI instead of '-'.
+                $zoneRaw = (string) $r->zone;
+                $zoneRawTrim = strtolower(trim($zoneRaw));
+                $zoneRawUnquoted = strtolower(trim($zoneRawTrim, '"'));
+                if ($zoneRawUnquoted === 'all') {
+                    $zoneText = 'All';
+                } else {
+                    $zoneIds = json_decode($r->zone, true);
 
-                // ✅ Fix double encoded issue
-                if (is_string($zoneIds)) {
-                    $zoneIds = json_decode($zoneIds, true);
-                }
+                    // ✅ Fix double encoded issue
+                    if (is_string($zoneIds)) {
+                        $zoneIds = json_decode($zoneIds, true);
+                    }
 
-                if (is_array($zoneIds) && count($zoneIds) > 0) {
-                    $zoneNames = DB::table('zone')
-                        ->whereIn('id', $zoneIds)
-                        ->pluck('name')
-                        ->toArray();
+                    if (is_array($zoneIds) && count($zoneIds) > 0) {
+                        $zoneNames = DB::table('zone')
+                            ->whereIn('id', $zoneIds)
+                            ->pluck('name')
+                            ->toArray();
 
-                    if (!empty($zoneNames)) {
-                        $zoneText = implode(', ', $zoneNames);
+                        if (!empty($zoneNames)) {
+                            $zoneText = implode(', ', $zoneNames);
+                        }
                     }
                 }
             }
@@ -182,7 +235,12 @@ class CouponController extends Controller
     {
         $c = Coupon::find($id);
         if(!$c) return response()->json(['error'=>'Not found'],404);
-        return response()->json($c);
+        // `zone` is stored sometimes as special literal like "ALL" (not JSON).
+        // Model casts may turn it into null/[] when it's not valid JSON.
+        // Provide raw zone value for the edit page.
+        $payload = $c->toArray();
+        $payload['zoneRaw'] = $c->getOriginal('zone');
+        return response()->json($payload);
     }
 
     public function store(Request $request)
@@ -229,7 +287,7 @@ class CouponController extends Controller
             'resturant_id'=>$request->input('resturant_id'),
             'cType'=>$request->input('cType'),
             'item_value'=>$request->input('item_value',0),
-            'zone' => $request->zone,
+            'zone' => $this->normalizeZoneForStorage($request->input('zone')),
             'usageLimit'=>$request->input('usageLimit',0),
             'usedCount'=>0,
             'usedBy'=>'',
@@ -278,7 +336,7 @@ class CouponController extends Controller
             'resturant_id'=>$request->input('resturant_id'),
             'cType'=>$request->input('cType'),
             'item_value'=>$request->input('item_value',0),
-            'zone' => $request->zone,
+            'zone' => $this->normalizeZoneForStorage($request->input('zone')),
             'usageLimit'=>$request->input('usageLimit',0),
             'isPublic'=>$request->boolean('isPublic')?1:0,
             'isEnabled'=>$request->boolean('isEnabled')?1:0,

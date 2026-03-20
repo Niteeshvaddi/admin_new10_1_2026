@@ -169,6 +169,25 @@
     var zonesLoaded = false;
     var loadZonesPromise;
     var allZoneIds = [];
+    var vendorsData = @json($vendors ?? []);
+
+    function renderAllVendorsByType(type, selectedVendor) {
+        $('#vendor_restaurant_select').empty();
+        $('#vendor_restaurant_select').append($('<option></option>').attr('value', '').text('{{ trans('lang.select_restaurant') }}'));
+        if (type) {
+            $('#vendor_restaurant_select').append($('<option></option>').attr('value', 'ALL').text('All ' + type + 's'));
+        }
+
+        vendorsData
+            .filter(v => !type || (v.vType === type))
+            .forEach(v => {
+                var opt = $('<option></option>').attr('value', v.id).text(v.title);
+                if (selectedVendor && v.id == selectedVendor) opt.attr('selected', 'selected');
+                $('#vendor_restaurant_select').append(opt);
+            });
+
+        $('#vendor_restaurant_select').prop('disabled', false);
+    }
 
         function loadZones() {
             $.ajax({
@@ -226,7 +245,16 @@
         var isChecked = $(this).is(':checked');
         $('.zone-checkbox').prop('checked', isChecked);
         updateZoneCount();
-        $('.zone-checkbox').trigger('change');
+        if (!isChecked) {
+            $('#vendor_restaurant_select')
+                .html('<option value="">Select zone first</option>')
+                .prop('disabled', true);
+            return;
+        }
+
+        if (allZoneIds.length > 0) {
+            renderAllVendorsByType($('#coupon_type').val(), $('#vendor_restaurant_select').val());
+        }
     });
 
     $(document).ready(function(){
@@ -251,14 +279,20 @@
 
 // ✅ Select All
         $('#select-all-zones').click(function () {
+            $('#zone_all').prop('checked', true);
             $('.zone-checkbox').prop('checked', true);
             updateZoneCount();
+            if (allZoneIds.length > 0) {
+                renderAllVendorsByType($('#coupon_type').val(), $('#vendor_restaurant_select').val());
+            }
         });
 
 // ✅ Deselect All
         $('#deselect-all-zones').click(function () {
+            $('#zone_all').prop('checked', false);
             $('.zone-checkbox').prop('checked', false);
             updateZoneCount();
+            loadRestaurantsByZones([]);
         });
 
         $(".save-form-btn").click(function(){
@@ -379,21 +413,8 @@
     });
     let couponType = $('#coupon_type').val(); // 👈 ADD
 
-    $(document).on('change', '.zone-checkbox', function () {
-
-        let selectedZones = [];
-
-        if ($('#zone_all').is(':checked') && allZoneIds.length > 0) {
-            selectedZones = allZoneIds.slice();
-        } else {
-        $('.zone-checkbox:checked').each(function () {
-            selectedZones.push($(this).val());
-        });
-        }
-
-        console.log('📍 Selected Zones:', selectedZones);
-
-        if (selectedZones.length === 0) {
+    function loadRestaurantsByZones(selectedZones) {
+        if (!selectedZones || selectedZones.length === 0) {
             $('#vendor_restaurant_select')
                 .html('<option value="">Select zone first</option>')
                 .prop('disabled', true);
@@ -410,18 +431,18 @@
             data: {
                 zones: selectedZones,
                 type: $('#coupon_type').val() // 👈 IMPORTANT
-
             },
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             success: function (response) {
-
-                console.log('✅ Response:', response);
+                var currentType = $('#coupon_type').val();
+                var allLabel = currentType ? ('All ' + currentType + 's') : 'All';
 
                 $('#vendor_restaurant_select')
                     .empty()
                     .append('<option value="">Select Restaurant</option>')
+                    .append('<option value="ALL">' + allLabel + '</option>')
                     .prop('disabled', false);
 
                 if (response.data && response.data.length > 0) {
@@ -436,12 +457,33 @@
             },
             error: function (xhr) {
                 console.error('❌ Error:', xhr.responseText);
-
                 $('#vendor_restaurant_select')
                     .html('<option>Error loading</option>')
                     .prop('disabled', false);
             }
         });
+    }
+
+    $(document).on('change', '.zone-checkbox', function () {
+
+        let selectedZones = [];
+
+        if ($('#zone_all').is(':checked') && allZoneIds.length > 0) {
+            selectedZones = allZoneIds.slice();
+        } else {
+        $('.zone-checkbox:checked').each(function () {
+            selectedZones.push($(this).val());
+        });
+        }
+
+        console.log('📍 Selected Zones:', selectedZones);
+
+        if ($('#zone_all').is(':checked') && allZoneIds.length > 0) {
+            renderAllVendorsByType($('#coupon_type').val(), $('#vendor_restaurant_select').val());
+            return;
+        }
+
+        loadRestaurantsByZones(selectedZones);
     });
 </script>
 @endsection
