@@ -1782,6 +1782,36 @@ END
     }
 
     /**
+     * Effective driver earning per order:
+     * Prefer calculatedCharges.totalCalculatedCharge, fallback to deliveryCharge.
+     */
+    private function effectiveDeliveryChargeExpr(string $alias = 'ro'): string
+    {
+        $jsonPath = "'$.totalCalculatedCharge'";
+        $numericRegex = "'^-?[0-9]+(\\\\.[0-9]+)?$'";
+        $directValue = "JSON_UNQUOTE(JSON_EXTRACT({$alias}.calculatedCharges, {$jsonPath}))";
+        $doubleEncodedValue = "JSON_UNQUOTE(JSON_EXTRACT(JSON_UNQUOTE({$alias}.calculatedCharges), {$jsonPath}))";
+
+        // Production-safe extraction:
+        // 1) direct JSON object in calculatedCharges
+        // 2) double-encoded JSON string in calculatedCharges
+        // 3) hard fallback to 0 (do not use deliveryCharge)
+        return "COALESCE(
+            CASE
+                WHEN {$directValue} REGEXP {$numericRegex}
+                THEN CAST({$directValue} AS DECIMAL(12,2))
+                ELSE NULL
+            END,
+            CASE
+                WHEN {$doubleEncodedValue} REGEXP {$numericRegex}
+                THEN CAST({$doubleEncodedValue} AS DECIMAL(12,2))
+                ELSE NULL
+            END,
+            0
+        )";
+    }
+
+    /**
      * Get drivers by week ID (similar to weekVendors for merchants)
      */
     public function weekDrivers($weekId)
@@ -1799,6 +1829,7 @@ END
 
         $dateExpr = $this->getDateExpression('ro');
         $completedStatuses = $this->getCompletedStatuses();
+        $effectiveChargeExpr = $this->effectiveDeliveryChargeExpr('ro');
 
         // Get drivers with orders in date range
         $drivers = DB::table('restaurant_orders as ro')
@@ -1813,9 +1844,9 @@ END
                 DB::raw("CONCAT(u.firstName,' ',u.lastName) as driver_name"),
                 'u.phoneNumber as phone',
                 DB::raw('COUNT(ro.id) as orders_count'),
-                DB::raw('SUM(IFNULL(ro.deliveryCharge,0)) as delivery_earning'),
+                DB::raw("SUM({$effectiveChargeExpr}) as delivery_earning"),
                 DB::raw('SUM(IFNULL(ro.tip_amount,0)) as tip_earning'),
-                DB::raw('SUM(IFNULL(ro.deliveryCharge,0) + IFNULL(ro.tip_amount,0)) as total_earning'),
+                DB::raw("SUM({$effectiveChargeExpr} + IFNULL(ro.tip_amount,0)) as total_earning"),
             ])
             ->get();
 
@@ -1827,7 +1858,7 @@ END
             ->select([
                 'ro.id',
                 'ro.driverID',
-                'ro.deliveryCharge',
+                DB::raw("{$effectiveChargeExpr} as effective_delivery_charge"),
                 'ro.tip_amount',
                 'ro.createdAt',
             ])
@@ -1879,7 +1910,7 @@ END
                 'orders' => $driverOrders->map(function ($o) {
                     return [
                         'order_id'       => $o->id,
-                        'deliveryCharge' => (float) ($o->deliveryCharge ?? 0),
+                        'deliveryCharge' => (float) ($o->effective_delivery_charge ?? 0),
                         'tip_amount'     => (float) ($o->tip_amount ?? 0),
                         'date'           => $o->createdAt,
                     ];
@@ -1908,6 +1939,7 @@ END
 
         $dateExpr = $this->getDateExpression('ro');
         $completedStatuses = $this->getCompletedStatuses();
+        $effectiveChargeExpr = $this->effectiveDeliveryChargeExpr('ro');
 
         // Get drivers count
         $driversCount = DB::table('restaurant_orders as ro')
@@ -1934,9 +1966,9 @@ END
             ->whereIn('ro.status', $completedStatuses)
             ->whereBetween(DB::raw("($dateExpr)"), [$startDateTime, $endDateTime])
             ->select([
-                DB::raw('SUM(IFNULL(ro.deliveryCharge,0)) as total_delivery_earnings'),
+                DB::raw("SUM({$effectiveChargeExpr}) as total_delivery_earnings"),
                 DB::raw('SUM(IFNULL(ro.tip_amount,0)) as total_tips'),
-                DB::raw('SUM(IFNULL(ro.deliveryCharge,0) + IFNULL(ro.tip_amount,0)) as total_settlement'),
+                DB::raw("SUM({$effectiveChargeExpr} + IFNULL(ro.tip_amount,0)) as total_settlement"),
             ])
             ->first();
 
@@ -1979,6 +2011,7 @@ END
 
         $dateExpr = $this->getDateExpression('ro');
         $completedStatuses = $this->getCompletedStatuses();
+        $effectiveChargeExpr = $this->effectiveDeliveryChargeExpr('ro');
 
         // Build base query with zone join
         $baseQuery = DB::table('restaurant_orders as ro')
@@ -2015,9 +2048,9 @@ END
         // Calculate totals
         $totals = (clone $baseQuery)
             ->select([
-                DB::raw('SUM(IFNULL(ro.deliveryCharge,0)) as total_delivery_earnings'),
+                DB::raw("SUM({$effectiveChargeExpr}) as total_delivery_earnings"),
                 DB::raw('SUM(IFNULL(ro.tip_amount,0)) as total_tips'),
-                DB::raw('SUM(IFNULL(ro.deliveryCharge,0) + IFNULL(ro.tip_amount,0)) as total_settlement'),
+                DB::raw("SUM({$effectiveChargeExpr} + IFNULL(ro.tip_amount,0)) as total_settlement"),
             ])
             ->first();
 
@@ -2166,6 +2199,7 @@ END
     {
         $completedStatuses = $this->getCompletedStatuses();
         $dateExpr = $this->getDateExpression('restaurant_orders');
+        $effectiveChargeExpr = $this->effectiveDeliveryChargeExpr('restaurant_orders');
 
         $q = DB::table('restaurant_orders')
             ->where('driverID', $driverId)
@@ -2191,7 +2225,7 @@ END
 
         $orders = $q->select([
             'id',
-            'deliveryCharge',
+            DB::raw("{$effectiveChargeExpr} as deliveryCharge"),
             'tip_amount',
             'createdAt',
         ])
@@ -2216,6 +2250,7 @@ END
         [$startDateTime, $endDateTime] = $this->normalizeDateRange((string)$startDate, (string)$endDate);
         $dateExpr = $this->getDateExpression('ro');
         $completedStatuses = $this->getCompletedStatuses();
+        $effectiveChargeExpr = $this->effectiveDeliveryChargeExpr('ro');
 
         // Get settlement week for status filtering
         $startDateCarbon = Carbon::parse($startDate);
@@ -2270,7 +2305,7 @@ END
             ->select([
                 'ro.id as order_id',
                 'ro.driverID',
-                'ro.deliveryCharge',
+                DB::raw("{$effectiveChargeExpr} as effective_delivery_charge"),
                 'ro.tip_amount',
                 'ro.createdAt',
                 'u.firebase_id as driver_id',
@@ -2322,7 +2357,7 @@ END
                 }
             }
 
-            $deliveryCharge = (float)($order->deliveryCharge ?? 0);
+            $deliveryCharge = (float)($order->effective_delivery_charge ?? 0);
             $tipAmount = (float)($order->tip_amount ?? 0);
             $totalEarning = $deliveryCharge + $tipAmount;
 
@@ -2458,6 +2493,7 @@ END
 
         $dateExpr = $this->getDateExpression('ro');
         $completedStatuses = $this->getCompletedStatuses();
+        $effectiveChargeExpr = $this->effectiveDeliveryChargeExpr('ro');
 
         // Get drivers with orders in date range
         $drivers = DB::table('restaurant_orders as ro')
@@ -2472,9 +2508,9 @@ END
                 DB::raw("CONCAT(u.firstName,' ',u.lastName) as driver_name"),
                 'u.phoneNumber as phone',
                 DB::raw('COUNT(ro.id) as orders_count'),
-                DB::raw('SUM(IFNULL(ro.deliveryCharge,0)) as delivery_earning'),
+                DB::raw("SUM({$effectiveChargeExpr}) as delivery_earning"),
                 DB::raw('SUM(IFNULL(ro.tip_amount,0)) as tip_earning'),
-                DB::raw('SUM(IFNULL(ro.deliveryCharge,0) + IFNULL(ro.tip_amount,0)) as total_earning'),
+                DB::raw("SUM({$effectiveChargeExpr} + IFNULL(ro.tip_amount,0)) as total_earning"),
             ])
             ->get();
 
@@ -2553,6 +2589,7 @@ END
 
         $completedStatuses = $this->getCompletedStatuses();
         $dateExpr = $this->getDateExpression('ro');
+        $effectiveChargeExpr = $this->effectiveDeliveryChargeExpr('ro');
 
         /*
         |--------------------------------------------------------------------------
@@ -2581,9 +2618,9 @@ END
                 'u.zoneId',
                 'z.name as zone',
                 DB::raw('COUNT(ro.id) as orders_count'),
-                DB::raw('SUM(IFNULL(ro.deliveryCharge,0)) as delivery_earning'),
+                DB::raw("SUM({$effectiveChargeExpr}) as delivery_earning"),
                 DB::raw('SUM(IFNULL(ro.tip_amount,0)) as tip_earning'),
-                DB::raw('SUM(IFNULL(ro.deliveryCharge,0) + IFNULL(ro.tip_amount,0)) as total_earning'),
+                DB::raw("SUM({$effectiveChargeExpr} + IFNULL(ro.tip_amount,0)) as total_earning"),
             ])
             ->get();
 
@@ -2599,7 +2636,7 @@ END
             ->select([
                 'ro.id',
                 'ro.driverID',
-                'ro.deliveryCharge',
+                DB::raw("{$effectiveChargeExpr} as effective_delivery_charge"),
                 'ro.tip_amount',
                 'ro.createdAt',
             ])
@@ -2676,7 +2713,7 @@ END
                 'orders' => $driverOrders->map(function ($o) {
                     return [
                         'order_id'       => $o->id,
-                        'deliveryCharge' => (float) ($o->deliveryCharge ?? 0),
+                        'deliveryCharge' => (float) ($o->effective_delivery_charge ?? 0),
                         'tip_amount'     => (float) ($o->tip_amount ?? 0),
                         'date'           => $o->createdAt,
                     ];

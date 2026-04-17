@@ -47,6 +47,13 @@
                             <option value="" selected>{{trans('lang.select_zone')}}</option>
                             </select>
                         </div>
+                        <div class="select-box pl-3">
+                            <select class="form-control best_selector">
+                                <option value="" selected>All Restaurants</option>
+                                <option value="best">Best Restaurants</option>
+                                <option value="non_best">Non Best Restaurants</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -350,6 +357,7 @@
     window.selectedRestaurantType = '';
     window.selectedBusinessModel = '';
     window.selectedCuisine = '';
+    window.selectedBestFilter = '';
     let restaurantTable;
     const RESTAURANT_COLUMN_STORAGE_KEY = 'restaurant_column_visibility_v1';
 
@@ -376,18 +384,21 @@
         var restaurantTypeValue = $('.restaurant_type_selector').val();
         var businessModelValue = $('.business_model_selector').val();
         var cuisineValue = $('.cuisine_selector').val();
+        var bestValue = $('.best_selector').val();
 
         console.log('Filter change triggered (SQL):');
         console.log('- Zone Value:', zoneValue);
         console.log('- Restaurant Type:', restaurantTypeValue);
         console.log('- Business Model:', businessModelValue);
         console.log('- Cuisine:', cuisineValue);
+        console.log('- Best Filter:', bestValue);
 
         // Store filter values for SQL query
         window.selectedZone = zoneValue || '';
         window.selectedRestaurantType = restaurantTypeValue || '';
         window.selectedBusinessModel = businessModelValue || '';
         window.selectedCuisine = cuisineValue || '';
+        window.selectedBestFilter = bestValue || '';
 
         // Reload the table with new filters (will be sent to backend)
         $('#storeTable').DataTable().ajax.reload();
@@ -399,12 +410,14 @@
         $('.restaurant_type_selector').val('').trigger('change');
         $('.business_model_selector').val('').trigger('change');
         $('.cuisine_selector').val('').trigger('change');
+        $('.best_selector').val('').trigger('change');
 
         // Clear filter variables
         window.selectedZone = '';
         window.selectedRestaurantType = '';
         window.selectedBusinessModel = '';
         window.selectedCuisine = '';
+        window.selectedBestFilter = '';
 
         // Reload the table
         $('#storeTable').DataTable().ajax.reload();
@@ -547,6 +560,11 @@
         minimumResultsForSearch: Infinity,
         allowClear: true
     });
+    $('.best_selector').select2({
+        placeholder: "Best Restaurants",
+        minimumResultsForSearch: Infinity,
+        allowClear: true
+    });
     $('select').on("select2:unselecting", function(e) {
         var self = $(this);
         setTimeout(function() {
@@ -627,7 +645,8 @@
                         search: {value: searchValue},
                         zone: window.selectedZone || '',
                         restaurant_type: window.selectedRestaurantType || '',
-                        business_model: window.selectedBusinessModel || ''
+                        business_model: window.selectedBusinessModel || '',
+                        best_filter: window.selectedBestFilter || ''
                         // vType: window.selectedBusinessModel || ''
                     };
 
@@ -1706,6 +1725,7 @@
             zone: $('.zone_selector').val() || '',
             restaurant_type: $('.restaurant_type_selector').val() || '',
             business_model: $('.business_model_selector').val() || '',
+            best_filter: $('.best_selector').val() || '',
             type: type
         };
 

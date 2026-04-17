@@ -2348,6 +2348,20 @@ class RestaurantController extends Controller
                 $query->where('subscriptionPlanId', $request->business_model);
             }
 
+            if ($request->has('best_filter') && $request->best_filter != '') {
+                if ($request->best_filter === 'best') {
+                    $query->where('best', 1);
+                } elseif ($request->best_filter === 'non_best') {
+                    $query->where(function ($q) {
+                        $q->whereNull('best')
+                            ->orWhere('best', 0)
+                            ->orWhere('best', '0')
+                            ->orWhere('best', false)
+                            ->orWhere('best', 'false');
+                    });
+                }
+            }
+
             // Apply date range filter
             if ($request->has('start_date') && $request->has('end_date')) {
                 $startDate = date('Y-m-d', strtotime($request->start_date));
@@ -2392,6 +2406,19 @@ class RestaurantController extends Controller
             }
             if ($request->vType != '') {
                 $statsQuery->where('vType', $request->vType);
+            }
+            if ($request->best_filter != '') {
+                if ($request->best_filter === 'best') {
+                    $statsQuery->where('best', 1);
+                } elseif ($request->best_filter === 'non_best') {
+                    $statsQuery->where(function ($q) {
+                        $q->whereNull('best')
+                            ->orWhere('best', 0)
+                            ->orWhere('best', '0')
+                            ->orWhere('best', false)
+                            ->orWhere('best', 'false');
+                    });
+                }
             }
 
             $totalRestaurants = $statsQuery->count();
@@ -2731,6 +2758,7 @@ class RestaurantController extends Controller
                 'createdAt' => $restaurant->createdAt ?? '',
                 'vType' => $restaurant->vType ?? 'restaurant',
                 'walletAmount' => $restaurant->walletAmount ?? 0,
+                'offer_lable' => $restaurant->offer_lable ?? '',
                 'adminCommission' => $restaurant->adminCommission ? json_decode($restaurant->adminCommission, true) : null,
                 'DeliveryCharge' => $restaurant->DeliveryCharge ?? false,
                 'specialDiscount' => $restaurant->specialDiscount ? json_decode($restaurant->specialDiscount, true) : [],
@@ -2828,6 +2856,7 @@ class RestaurantController extends Controller
 
             // Update restaurant fields
             if ($request->has('title')) $restaurant->title = $request->title;
+            if ($request->has('offer_lable')) $restaurant->offer_lable = mb_substr(trim((string) $request->offer_lable), 0, 15);
             if ($request->has('description')) $restaurant->description = $request->description;
             if ($request->has('location')) $restaurant->location = $request->location;
             if ($request->has('latitude')) $restaurant->latitude = floatval($request->latitude);

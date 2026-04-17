@@ -53,6 +53,15 @@
                                         </div>
                                     </div>
                                     <div class="form-group row width-50">
+                                        <label class="col-3 control-label">Offer Label</label>
+                                        <div class="col-7">
+                                            <input type="text" class="form-control offer_lable" placeholder="Enter offer label" maxlength="15">
+                                            <div class="form-text text-muted">
+                                                Max 15 characters.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row width-50">
                                         <label class="col-3 control-label">Cuisine</label>
                                         <div class="col-7">
                                             <select id='restaurant_vendor_cuisines' class="form-control" required>
@@ -1060,6 +1069,7 @@
 
         function populateForm(restaurant) {
             $('.restaurant_name').val(restaurant.title || '');
+            $('.offer_lable').val((restaurant.offer_lable || '').toString().slice(0, 15));
 
             let vType = (restaurant.vType || 'restaurant').toLowerCase();
 
@@ -1400,6 +1410,7 @@
             const description = $('.restaurant_description').val().trim();
             const countryCode = $('#country_selector1').val();
             const phonenumber = $('.restaurant_phone').val().trim();
+            const offerLable = $('.offer_lable').val().trim().slice(0, 15);
             const zoneId = $('#zone').val();
             const zoneArea = $('#zone option:selected').data('area') || [];
             const isOpen = $('#is_open').is(':checked');
@@ -1489,6 +1500,7 @@
 
                 const payload = {
                     title: restaurantname,
+                    offer_lable: offerLable,
                     description,
                     latitude,
                     longitude,

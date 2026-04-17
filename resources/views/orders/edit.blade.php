@@ -261,6 +261,24 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="order_addre-edit calculated_charges_hide">
+                                    <div class="card mt-4">
+                                        <div class="card-header bg-white">
+                                            <h3>Calculated Charges</h3>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="address order_detail-top-box">
+                                                <table class="table table-sm mb-0">
+                                                    <tbody id="calculated_charges_rows">
+                                                    <tr>
+                                                        <td colspan="2" class="text-muted">No calculated charges available.</td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="resturant-detail mt-4">
                                     <div class="card">
                                         <div class="card-header bg-white">
@@ -700,6 +718,126 @@
             }
         }
 
+        function formatCalculatedChargeLabel(key) {
+            if (!key) {
+                return '';
+            }
+
+            var normalized = String(key)
+                .replace(/([a-z])([A-Z])/g, '$1 $2')
+                .replace(/_/g, ' ')
+                .toLowerCase();
+
+            return normalized.replace(/\b\w/g, function (char) {
+                return char.toUpperCase();
+            });
+        }
+
+        function formatCalculatedChargeValue(value) {
+            if (value === null || value === undefined || value === '') {
+                return '-';
+            }
+
+            if (typeof value === 'number' && isFinite(value)) {
+                return value.toFixed(2);
+            }
+
+            if (typeof value === 'string') {
+                var trimmed = value.trim();
+                if (!trimmed) {
+                    return '-';
+                }
+
+                if (/^fieldvalue\(/i.test(trimmed)) {
+                    return 'Auto timestamp';
+                }
+
+                var numeric = Number(trimmed);
+                if (!Number.isNaN(numeric) && Number.isFinite(numeric)) {
+                    return numeric.toFixed(2);
+                }
+
+                return trimmed;
+            }
+
+            return String(value);
+        }
+
+        function formatCalculatedChargesDateTime(value) {
+            if (!value) {
+                return '';
+            }
+
+            try {
+                var raw = String(value).trim();
+                var date;
+
+                // Treat MySQL datetime without timezone as UTC (e.g. 2026-04-14 07:20:39.000)
+                var mysqlUtcMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?(?:\.(\d{1,3}))?$/);
+                var hasTimezone = /(?:Z|[+\-]\d{2}:\d{2})$/i.test(raw);
+                if (mysqlUtcMatch && !hasTimezone) {
+                    var year = parseInt(mysqlUtcMatch[1], 10);
+                    var month = parseInt(mysqlUtcMatch[2], 10) - 1;
+                    var day = parseInt(mysqlUtcMatch[3], 10);
+                    var hour = parseInt(mysqlUtcMatch[4], 10);
+                    var minute = parseInt(mysqlUtcMatch[5], 10);
+                    var second = parseInt(mysqlUtcMatch[6] || '0', 10);
+                    var milli = parseInt((mysqlUtcMatch[7] || '0').padEnd(3, '0'), 10);
+                    date = new Date(Date.UTC(year, month, day, hour, minute, second, milli));
+                } else {
+                    date = new Date(raw);
+                }
+
+                if (isNaN(date.getTime())) {
+                    return String(value);
+                }
+                return date.toLocaleString('en-IN', {
+                    timeZone: 'Asia/Kolkata',
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                }) + ' IST';
+            } catch (err) {
+                return String(value);
+            }
+        }
+
+        function renderCalculatedCharges(charges, orderMeta) {
+            var $rows = $('#calculated_charges_rows');
+            if (!$rows.length) {
+                return;
+            }
+
+            var html = '';
+
+            if (charges && typeof charges === 'object' && !Array.isArray(charges) && Object.keys(charges).length > 0) {
+                Object.keys(charges).forEach(function (key) {
+                    var normalizedKey = String(key).toLowerCase();
+                    if (
+                        normalizedKey === 'calculatedat' ||
+                        normalizedKey === 'drivertorestaurantduration' ||
+                        normalizedKey === 'restauranttocustomerduration'
+                    ) {
+                        return;
+                    }
+                    var label = formatCalculatedChargeLabel(key);
+                    var value = formatCalculatedChargeValue(charges[key]);
+                    html += '<tr><th style="width: 55%;">' + label + '</th><td>' + value + '</td></tr>';
+                });
+            }
+
+            var deliveredAtRaw = (orderMeta && (orderMeta.delivered_at || orderMeta.deliveredAt)) || '';
+            if (deliveredAtRaw) {
+                var deliveredAt = formatCalculatedChargesDateTime(deliveredAtRaw);
+                html += '<tr><th style="width: 55%;">Delivered At</th><td>' + deliveredAt + '</td></tr>';
+            }
+
+            $rows.html(html || '<tr><td colspan="2" class="text-muted">No calculated charges available.</td></tr>');
+        }
+
 
         $(document).ready(async function () {
             // Initialize driver assignment
@@ -727,6 +865,7 @@
             var vendorOrder = order; // For compatibility
             var vendorIDSafe = order.vendorID || order.vendor_db_id || order.vendor_id || '';
             var productsSafe = Array.isArray(order.products) ? order.products : [];
+            renderCalculatedCharges(order.calculatedCharges || {}, order);
 
             // Populate order details
             append_procucts_list = document.getElementById('order_products');
@@ -1174,8 +1313,13 @@
                 });
             }
 
-            if (order.status == "restaurantorders Rejected" || order.status == "Driver Rejected") {
+            // Allow admins to change status even if driver rejected.
+            // Only lock status for vendor-side hard rejection.
+            var rawStatus = (order.status || '').toString().trim().toLowerCase();
+            if (rawStatus === "restaurantorders rejected") {
                 $("#order_status").prop("disabled", true);
+            } else {
+                $("#order_status").prop("disabled", false);
             }
             var price = 0;
             if (order.authorID) {
